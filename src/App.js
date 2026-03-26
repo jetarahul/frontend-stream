@@ -1,10 +1,10 @@
-import React from "react";
-import OrderStream from "./OrderStream";
+import React from 'react';
+import OrderStream from './OrderStream';
 
 function App() {
   return (
-    <div className="App">
-      <h1>Algo Trading Dashboard</h1>
+    <div>
+      <h1>Live Order Events</h1>
       <OrderStream />
     </div>
   );

@@ -1,33 +1,55 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 
 function OrderStream() {
-  const [orders, setOrders] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [status, setStatus] = useState('Connecting...');
 
   useEffect(() => {
-    const events = new EventSource(
-      "https://stream-service-820892686232.us-central1.run.app/events"
-    );
+    let eventSource;
 
-    events.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      setOrders((prev) => [...prev, data]);
+    const connect = () => {
+      setStatus('Connecting...');
+      eventSource = new EventSource(
+        'https://stream-service-820892686232.us-central1.run.app/events'
+      );
+
+      eventSource.onopen = () => {
+        setStatus('Connected');
+      };
+
+      eventSource.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          setEvents((prev) => [...prev, data]);
+        } catch (err) {
+          console.error('Error parsing SSE message', err);
+        }
+      };
+
+      eventSource.onerror = () => {
+        setStatus('Disconnected. Reconnecting...');
+        eventSource.close();
+        // Try reconnect after 3 seconds
+        setTimeout(connect, 3000);
+      };
     };
 
-    events.onerror = (err) => {
-      console.error("EventSource failed:", err);
-      events.close();
-    };
+    connect();
 
-    return () => events.close();
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
   }, []);
 
   return (
     <div>
-      <h2>Live Order Events</h2>
+      <p>Status: {status}</p>
       <ul>
-        {orders.map((order, index) => (
-          <li key={index}>
-            {order.symbol} - {order.status}
+        {events.map((event, idx) => (
+          <li key={idx}>
+            {event.symbol} - {event.status}
           </li>
         ))}
       </ul>
