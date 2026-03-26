@@ -20,6 +20,12 @@ function OrderStream() {
       eventSource.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);
+
+          // Ignore heartbeat events
+          if (data.heartbeat) {
+            return;
+          }
+
           setEvents((prev) => [...prev, data]);
         } catch (err) {
           console.error('Error parsing SSE message', err);
@@ -45,6 +51,7 @@ function OrderStream() {
 
   return (
     <div>
+      <h2>Live Order Events</h2>
       <p>Status: {status}</p>
       <ul>
         {events.map((event, idx) => (
