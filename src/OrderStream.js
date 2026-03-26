@@ -1,32 +1,34 @@
 import React, { useEffect, useState } from "react";
 
 function OrderStream() {
-  const [events, setEvents] = useState([]);
+  const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    const sse = new EventSource("https://stream-service-820892686232.us-central1.run.app/events");
+    const events = new EventSource(
+      "https://stream-service-<your-id>.us-central1.run.app/events"
+    );
 
-    sse.onmessage = (event) => {
+    events.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      setEvents((prev) => [...prev, data]);
+      setOrders((prev) => [...prev, data]);
     };
 
-    sse.onerror = (err) => {
-      console.error("SSE error:", err);
-      sse.close();
+    events.onerror = (err) => {
+      console.error("EventSource failed:", err);
+      events.close();
     };
 
-    return () => {
-      sse.close();
-    };
+    return () => events.close();
   }, []);
 
   return (
     <div>
       <h2>Live Order Events</h2>
       <ul>
-        {events.map((e, idx) => (
-          <li key={idx}>{JSON.stringify(e)}</li>
+        {orders.map((order, index) => (
+          <li key={index}>
+            {order.symbol} - {order.status}
+          </li>
         ))}
       </ul>
     </div>
