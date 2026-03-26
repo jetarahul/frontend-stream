@@ -5,7 +5,7 @@ function OrderStream() {
 
   useEffect(() => {
     const events = new EventSource(
-      "https://stream-service-<your-id>.us-central1.run.app/events"
+      "https://stream-service-820892686232.us-central1.run.app/events"
     );
 
     events.onmessage = (event) => {
