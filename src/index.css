@@ -1,13 +1,104 @@
-body {
+/* Global base — kills white bleed at page edges and sets dark defaults app-wide */
+
+html, body, #root {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  padding: 0;
+  min-height: 100vh;
+  background: #0d1b2a;
+  color: #e2e8f0;
+  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+* {
+  box-sizing: border-box;
+}
+
+/* Text selection — matches the accent palette */
+::selection {
+  background: rgba(59, 130, 246, 0.35);
+  color: #f1f5f9;
+}
+
+/* Scrollbar (Chromium / Safari) — subtle, dark, non-intrusive */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0d1b2a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e3a5f;
+  border-radius: 5px;
+  border: 2px solid #0d1b2a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2a4a7a;
+}
+
+/* Scrollbar (Firefox) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1e3a5f #0d1b2a;
+}
+
+/* Form controls — remove browser default styling that looks jarring on dark bg */
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Autofill — Chrome paints autofilled inputs yellow/white by default, this overrides it */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #f1f5f9;
+  -webkit-box-shadow: 0 0 0 1000px #0f2035 inset;
+  caret-color: #f1f5f9;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Links — reset browser default blue */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Remove focus outline on buttons (we handle our own focus states) */
+button:focus {
+  outline: none;
+}
+
+/* Preserve focus visibility for keyboard users */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Headings reset */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  color: #f1f5f9;
+}
+
+/* Paragraph reset */
+p {
+  margin: 0;
 }

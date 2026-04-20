@@ -1,52 +1,92 @@
-import React, { useEffect, useState } from 'react';
-import { collection, getDocs } from "firebase/firestore";
+// src/OrderStream.js
+import React, { useEffect, useState } from "react";
+import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "./firebase";
 
 function OrderStream() {
   const [events, setEvents] = useState([]);
-  const [status, setStatus] = useState('Connecting...');
+  const [status, setStatus] = useState("Disconnected");
 
   useEffect(() => {
     let eventSource;
 
-    // Step 1: Load past events from Firestore
     async function fetchHistory() {
       try {
+        console.log("Fetching from collection: order_events");
+
+        // Fetch all past events
         const querySnapshot = await getDocs(collection(db, "order_events"));
         const pastEvents = [];
-        querySnapshot.forEach((doc) => {
-          pastEvents.push(doc.data());
+        querySnapshot.forEach((docSnap) => {
+          pastEvents.push({ id: docSnap.id, ...docSnap.data() });
         });
-        setEvents((prev) => [...pastEvents, ...prev]);
+        console.log("Fetched past events:", pastEvents);
+
+        // Direct document fetch test (optional)
+        const testDocRef = doc(db, "order_events", "Rk87YTjm5hios4qOvSTG");
+        const testDocSnap = await getDoc(testDocRef);
+        if (testDocSnap.exists()) {
+          console.log("Direct fetch testDoc:", testDocSnap.data());
+        } else {
+          console.log("Direct fetch testDoc: Not found");
+        }
+
+        // Deduplicate by id + symbol + status
+        setEvents((prev) => {
+          const combined = [...pastEvents, ...prev];
+          const unique = combined.filter(
+            (event, index, self) =>
+              index ===
+              self.findIndex(
+                (e) =>
+                  e.id === event.id ||
+                  (e.symbol === event.symbol && e.status === event.status)
+              )
+          );
+          return unique;
+        });
       } catch (err) {
         console.error("Error loading Firestore history:", err);
       }
     }
+
     fetchHistory();
 
-    // Step 2: Connect to SSE for live events
     const connect = () => {
-      setStatus('Connecting...');
+      setStatus("Connecting...");
       eventSource = new EventSource(
-        'https://stream-service-820892686232.us-central1.run.app/events'
+        "https://stream-service-820892686232.us-central1.run.app/events"
       );
 
       eventSource.onopen = () => {
-        setStatus('Connected');
+        setStatus("Connected");
       };
 
       eventSource.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);
-          if (data.heartbeat) return; // ignore heartbeat
-          setEvents((prev) => [...prev, data]);
+          if (data.heartbeat) return;
+
+          // Deduplicate SSE events
+          setEvents((prev) => {
+            const combined = [...prev, data];
+            const unique = combined.filter(
+              (event, index, self) =>
+                index ===
+                self.findIndex(
+                  (e) =>
+                    e.symbol === event.symbol && e.status === event.status
+                )
+            );
+            return unique;
+          });
         } catch (err) {
-          console.error('Error parsing SSE message', err);
+          console.error("Error parsing SSE message", err);
         }
       };
 
       eventSource.onerror = () => {
-        setStatus('Disconnected. Reconnecting...');
+        setStatus("Disconnected. Reconnecting...");
         eventSource.close();
         setTimeout(connect, 3000);
       };
@@ -61,7 +101,7 @@ function OrderStream() {
 
   return (
     <div>
-      <h2>Order Events</h2>
+      <h1>Live Order Events</h1>
       <p>Status: {status}</p>
       <ul>
         {events.map((event, idx) => (
